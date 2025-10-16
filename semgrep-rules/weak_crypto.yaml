@@ -1,0 +1,7 @@
+rules:
+  - id: dotnet-md5-usage
+    patterns:
+      - pattern: MD5.Create()
+    message: "MD5 is a weak hashing algorithm and should not be used for security purposes."
+    severity: INFO
+    languages: [csharp]

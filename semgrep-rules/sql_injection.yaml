@@ -1,0 +1,8 @@
+rules:
+  - id: dotnet-sql-concat
+    patterns:
+      - pattern: |
+          $C.CommandText = $A + $B;
+    message: "SQL built using string concatenation may be vulnerable to SQL injection."
+    severity: WARNING
+    languages: [csharp]

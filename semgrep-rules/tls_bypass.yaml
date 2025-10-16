@@ -1,0 +1,7 @@
+rules:
+  - id: dotnet-tls-bypass
+    patterns:
+      - pattern: ServerCertificateCustomValidationCallback = $X
+    message: "Disabling server certificate validation bypasses TLS protections."
+    severity: ERROR
+    languages: [csharp]

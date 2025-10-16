@@ -1,0 +1,9 @@
+rules:
+  - id: dotnet-insecure-binaryformatter
+    patterns:
+      - pattern: BinaryFormatter.Deserialize(...)
+    message: "BinaryFormatter.Deserialize is insecure and can lead to arbitrary code execution when used on untrusted data."
+    severity: ERROR
+    languages: [csharp]
+    metadata:
+      owasp: A1
