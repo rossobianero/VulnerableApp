@@ -1,7 +1,6 @@
 using System;
 using System.Data;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Data.Sqlite;
@@ -28,7 +27,7 @@ if (!File.Exists(dbFile))
     cmd.CommandText = "CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT)";
     cmd.ExecuteNonQuery();
     // add a sample user
-    cmd.CommandText = "INSERT INTO users (username,password) VALUES ('admin','password123')";
+    cmd.CommandText = "INSERT INTO users (username,password) VALUES ('admin','password123)";
     cmd.ExecuteNonQuery();
 }
 
@@ -43,7 +42,7 @@ app.MapPost("/login", (HttpRequest request) =>
     var user = form["username"].ToString();
     var pass = form["password"].ToString();
 
-    var configuredStripe = builder.Configuration["ApiKeys:StripeApiKey"];
+    var configuredStripe = builder.Configuration["ApiKeys:StripeApiKey"]; 
 
     if (user == fixedUser && pass == fixedPass)
     {
@@ -55,11 +54,12 @@ app.MapPost("/login", (HttpRequest request) =>
 // 2) SQL Injection: /search?username=...
 app.MapGet("/search", (string username) =>
 {
-    // BAD: raw concatenation into SQL
+    // FIX: Use parameterized query to prevent SQL injection
     using var conn = new SqliteConnection($"Data Source={dbFile}");
     conn.Open();
     using var cmd = conn.CreateCommand();
-    cmd.CommandText = "SELECT id, username FROM users WHERE username = '" + username + "';"; // SQL injection
+    cmd.CommandText = "SELECT id, username FROM users WHERE username = @username";
+    cmd.Parameters.AddWithValue("@username", username);
     using var reader = cmd.ExecuteReader();
     var results = new System.Collections.Generic.List<object>();
     while (reader.Read())
@@ -107,16 +107,12 @@ app.MapGet("/exec", (string cmd) =>
 // 4) Insecure deserialization endpoint: /deserialize  (body=base64 of serialized object)
 app.MapPost("/deserialize", async (HttpRequest request) =>
 {
-    // BAD: BinaryFormatter deserialization of untrusted data
-    using var ms = new MemoryStream();
-    await request.Body.CopyToAsync(ms);
-    ms.Position = 0;
+    // SAFE: replaced BinaryFormatter with JSON for deserialization
+    using var sr = new StreamReader(request.Body);
+    var body = await sr.ReadToEndAsync();
     try
     {
-#pragma warning disable SYSLIB0011
-        var bf = new BinaryFormatter();
-        var obj = bf.Deserialize(ms); // insecure deserialization
-#pragma warning restore SYSLIB0011
+        var obj = JObject.Parse(body); // Assuming we want a JSON object
         return Results.Ok(new { type = obj?.GetType().FullName ?? "null" });
     }
     catch (Exception ex)
@@ -164,6 +160,5 @@ app.MapPost("/parse", async (HttpRequest request) =>
 });
 
 app.Run();
-
 
 public partial class Program { }
