@@ -14,3 +14,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "VulnerableApp.dll"]
+USER appuser

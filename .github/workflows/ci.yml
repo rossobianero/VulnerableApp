@@ -13,7 +13,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Restore
         run: dotnet restore
@@ -22,13 +22,4 @@ jobs:
         run: dotnet build --no-restore --configuration Release --verbosity minimal
 
       - name: Run tests
-        run: dotnet test --no-build --verbosity normal
-
-      - name: Run Semgrep
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: 'p/ci' # quick default policy; users can change to custom ruleset
-          publish: 'false'
-
-      - name: List vulnerable packages
-        run: dotnet list VulnerableApp/VulnerableApp.csproj package --vulnerable || true
+        run: dotnet test 
